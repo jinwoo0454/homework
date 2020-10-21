@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <title>nike shoes</title>
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function order() {
+            orderCheck();
+        }//order 함수
+        function countEmpty(array) {
+            let numOfEmpty = 0;
+            for (i = 0; i < array.length; i++) {
+                if (array[i].value === "") {
+                    numOfEmpty++;
+                }
+            }
+            return numOfEmpty;
+        }//입력칸의 빈칸을 체크하는 함수
+
+        function addOrder(name, quantity, address, phone_num) {
+            $.ajax({
+                type: "POST",
+                url: "/order",
+                data: {
+                    'name_give': name,
+                    'quantity_give': quantity,
+                    'address_give': address,
+                    'phone_num_give': phone_num
+                },
+                success: function (response) { // 성공하면
+                    if (response["result"] == "success") {
+                        alert(response["msg"])
+                    }
+                }
+            })
+        }//서버로 주문데이터 보내기
+
+        function orderCheck() {
+            let tempArray = [];
+            let tempName = document.getElementById('name').value;
+            let tempQuantity = document.getElementById('quantity').value;
+            let tempAddress = document.getElementById('address').value;
+            let tempPhoneNum = document.getElementById('phone-num').value;
+
+            tempArray[0] = {value: tempName, ko: '이름'};
+            tempArray[1] = {value: tempQuantity, ko: '수량'};
+            tempArray[2] = {value: tempAddress, ko: '주소'};
+            tempArray[3] = {value: tempPhoneNum, ko: '전화번호'};
+            /* tempArray에 임시로 input값 저장
+            0: name , 1: quantity, 2: address, 3: phone number
+            */
+            let numOfEmpty = countEmpty(tempArray);
+            //numOfEmpty에 빈칸개수 저장
+
+            if (numOfEmpty === 0) {
+
+                addOrder(tempName, tempQuantity, tempAddress, tempPhoneNum);//주문목록 추가
+                location.reload();
+                showOrders()//showOrders();//GET으로 주문 목록 자동 보이기
+
+                document.getElementById('name').value = "";
+                document.getElementById('quantity').value = "";
+                document.getElementById('address').value = "";
+                document.getElementById('phone-num').value = "";
+                // 다시 빈칸으로 만들기
+            } else if (numOfEmpty === 1) {
+                for (i = 0; i < tempArray.length; i++) {
+                    if (tempArray[i].value === "") {
+                        alert(tempArray[i].ko + '을(를) 입력해주세요.');
+                    }
+                }
+                //하나만 입력이 안되었을 경우
+            } else {
+                alert('내용을 입력해주세요.');
+                // 2개이상 입력이 안되었을 경우
+            }
+
+
+        }
+
+
+        function showExchangeRate() {
+
+            $.ajax({
+                type: 'GET',
+                url: 'https://api.manana.kr/exchange/rate.json',
+                data: {},
+                success: function (res) {
+                    console.log(res[1].name);
+                    $('#ex-rate').empty();
+                    for (i = 0; i < res.length; i++) {
+                        if (res[i].name === "USDKRW=X") {
+                            let usdToKrw = res[i].rate;
+                            let tempHtml = `<h3>달러-원 환율: ${usdToKrw}</h3>`;
+                            $('#ex-rate').append(tempHtml);
+                        }
+                    }
+                }
+            })
+        }
+
+        function showOrders() {
+            $.ajax({
+                type: "GET",
+                url: "/order",
+                data: {},
+                success: function (response) {
+                    let orders = response['orders']
+                    for (let i = 0; i < orders.length; i++) {
+                        let tempName = orders[i]['name']
+                        let tempQuantity = orders[i]['quantity']
+                        let tempAddress = orders[i]['address']
+                        let tempPhoneNum = orders[i]['phone_num']
+
+                        let tempHtml = `<tr>
+                            <td>${tempName}</td>
+                            <td>${tempQuantity}</td>
+                            <td>${tempAddress}</td>
+                            <td>${tempPhoneNum}</td>
+                        </tr>`
+
+                        $('#show-info').append(tempHtml);
+                    }
+                }
+            })
+        }//서버로부터 orders 받아와서  출력
+
+    </script>
+    <style>
+        h1 {
+            font-family: '배달의민족 도현';
+        }
+
+        div,
+        p {
+            font-family: '배달의민족 주아';
+        }
+
+        .wrap {
+            width: 500px;
+            margin: auto;
+        }
+
+        .img {
+            display: block;
+            width: 500px;
+            margin: 0px auto;
+            border: solid;
+            border-radius: 10px;
+            border-width: 3px;
+            border-color: black;
+        }
+
+        .btn {
+            display: block;
+            margin: 0px auto;
+            font-size: 20px;
+            height: 50px;
+            width: 150px;
+            font-family: '배달의민족 주아';
+            background-color: lightblue;
+            border: lightcyan;
+            border-radius: 5px;
+        }
+
+        .tbody {
+            border-style: solid;
+            border-width: 2px;
+            border-radius: 5px;
+            padding: 5px 20px 5px 5px;
+            border-color: black;
+            background-color: lightgray;
+        }
+
+        .tbody2 {
+            border-style: solid;
+            border-width: 2px;
+            padding: 5px 100px 5px 5px;
+            border-color: black;
+            border-radius: 5px;
+
+        }
+
+        #ex-rate {
+            color: lightblue;
+            font-size: medium;
+            font-family: '나눔고딕'
+        }
+
+        .thead {
+            background-color: darkgray;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrap">
+    <div><img class="img" src="http://www.fashionkidunia.com/wp-content/uploads/2018/05/nike-shoes-4.gif"
+              alt="nike shoes"></div>
+    <h1>상품제목 <span style="font-size: 15px; font-family: '배달의민족 주아'; font-weight: normal">가격: 80,000원/개</span></h1>
+    <p>나이키 클래식 코르테즈 신발은 빌 바워맨이 디자인하고 1972년에 출시된 나이키의 오리지널 러닝화입니다. 이 버전은 천연 가죽과 인조가죽을 결합한 구조로 더욱 우수한 내구성을 자랑합니다.</p>
+    <div id="ex-rate"></div>
+    <script>window.onload = showExchangeRate();</script>
+    <br>
+    <h1>주문하기</h1>
+    <p>
+    <table>
+        <tbody>
+        <tr>
+            <td class="tbody">주문자 성함</td>
+            <td class="tbody2"><input id="name" type="text" placeholder="홍길동"></td>
+        </tr>
+        <tr>
+            <td class="tbody">수량</td>
+            <td class="tbody2"><select id="quantity" name="selection">
+                <OPTION selected VALUE="">-- 수량을 선택하세요 --</OPTION>
+                <OPTION VALUE=1>1</OPTION>
+                <OPTION VALUE=2>2</OPTION>
+                <OPTION VALUE=3>3</OPTION>
+                <OPTION VALUE=4>4</OPTION>
+            </select></td>
+        </tr>
+        <tr>
+            <td class="tbody">주소</td>
+            <td class="tbody2"><input id="address" type="text" placeholder="서울시 관악구"></td>
+        </tr>
+        <tr>
+            <td class="tbody">전화번호</td>
+            <td class="tbody2"><input id="phone-num" type="tel" placeholder="010-XXXX-XXXX"></td>
+        </tr>
+        </tbody>
+    </table>
+    </p>
+    <p>
+        <button onclick="order()" class="btn">주문하기</button>
+    </p>
+    <br>
+    <p>
+    <table>
+        <thead>
+        <tr>
+            <td class="thead">주문자 성함</td>
+            <td class="thead">수량</td>
+            <td class="thead">주소</td>
+            <td class="thead">전화번호</td>
+        </tr>
+        <tbody class="tbody" id="show-info">
+        <script>showOrders()</script>
+        </tbody>
+        </thead>
+    </table>
+    </p>
+</div>
+</body>
+
+</html>
